@@ -38,7 +38,10 @@ shinyServer(
         detailed information about a particular dataset. The
         remaining 5 datasets are from the
         <a href = https://www.cia.gov/library/publications/the-world-factbook/rankorder/rankorderguide.html> 
-        CIA World Factbook</a> and include information for several countries."}
+        CIA World Factbook</a> and include information for several countries.
+        The app was written by Barbara Borges Ribeiro, and the original code is in the repo
+        <a href=https://github.com/bborgesr/shiny_apps>shiny_apps</a>. 
+        I'm just a huge fan of the app and wanted to be able to use it in teaching."}
       })
     
     tab1 <- reactive({
