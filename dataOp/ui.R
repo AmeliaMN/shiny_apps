@@ -274,5 +274,6 @@ shinyUI(fluidPage(
                column(4, htmlOutput("joinTab"))
              )
     )
-  )
+  ),
+  htmlOutput("Attribution")
 ))
