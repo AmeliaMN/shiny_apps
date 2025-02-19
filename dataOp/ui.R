@@ -25,7 +25,7 @@ shinyUI(fluidPage(
                column(1),
                
                column(2,
-                      selectInput("tab1", label = strong("Select the 1st table to join"),
+                      selectInput("tab1", label = strong("Select the left table"),
                                   choices = list("Galton", 
                                                  "Dimes", 
                                                  "SwimRecords", 
@@ -44,7 +44,7 @@ shinyUI(fluidPage(
                column(3),
                
                column(2,
-                      selectInput("tab2", label = strong("Select the 2nd table to join"),
+                      selectInput("tab2", label = strong("Select the right table (only used for joins)"),
                                   choices = list("Galton", 
                                                  "Dimes", 
                                                  "SwimRecords",

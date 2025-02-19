@@ -22,8 +22,8 @@ install_load <- function (package1, ...)  {
 
 install_load("mosaic", "mosaicData", "dplyr", "RCurl")
 
-tableHelp <- function(tab, n) {  
-  set.seed(1993)
+tableHelp <- function(tab, n, seed = 1993) {
+  set.seed(seed)
   result <- tab[sample(nrow(tab), n), ]
   return (result)
 }
@@ -75,7 +75,7 @@ end_table <- function(df, cells) {
   full_table
 }
 
-normalTable = function(df, group, order = c(FALSE, TRUE)) {  
+normalTable = function(df, group, order = FALSE) { # c(FALSE, TRUE)) {  
   for (i in 1:length(group) ) {
     df[[ group[[i]] ]] <- as.factor(df[[ group[[i]] ]])
   }
@@ -113,13 +113,16 @@ summarTable <- function(df, group, conditions) {
   exp <- exp[[1]]
   cellColFun <- normalCellCol(df, group)
   df <- cellColFun[[2]]
-  df <- df %>% group_by(grouping) %>% s_summarise(exp)
-  name <- group[[1]]
+  df <- df |> group_by(across(c(grouping, all_of(group)))) |> s_summarise(exp)
+  # modified original version
+  name <- paste(":", group[[1]])
   if (length(group) > 1) {
     for (i in 2:length(group)) {
       name <- paste0(name, " : ", group[[i]])
     } 
   }  
+  # new version
+  name <- "group #"
   colnames(df)[which(names(df) == "grouping")] <- name
   df[,sapply(df, is.numeric)] <-round(df[,sapply(df, is.numeric)],2)
   normalTable(df, name, order=TRUE)
@@ -285,23 +288,33 @@ fancierTable = function(left, right, df, default = c("none", "left", "right"),
 }
 
 
-joinTableHelp <- function(tab1, tab2, n1, n2) {  
-  set.seed(1993)
+joinTableHelp <- function(tab1, tab2, n1, n2, seed1 = 1993, seed2 = 1993) {
+  set.seed(seed1)
   left <- tab1[sample(nrow(tab1), n1), ]
   left$rowNum <- 1:nrow(left)
-  
+
+  set.seed(seed2)
   right <- tab2[sample(nrow(tab2), n2), ]
   right$rowNum <- 1:nrow(right)
-  
+
   return (list(left=left, right=right))
 }
 
-
-joinHelp <- function(tab1, tab2, n1, n2, tab1var, tab2var, joinType) {
-  set.seed(1993)
+joinHelp <- function(tab1, tab2, n1, n2, tab1var, tab2var, 
+                     joinType = c( "Inner Join",
+                                   "Left Outer Join",
+                                   "Right Outer Join",
+                                   "Full Outer Join",
+                                   "Cross Join"),
+                     seed1 = 1993, seed2 = 1993) {
+  
+  joinType <- match.arg(joinType)
+ 
+  set.seed(seed1) 
   left <- tab1[sample(nrow(tab1), n1), ]
   left$rowNum = 1:nrow(left)
   
+  set.seed(seed2)
   right <- tab2[sample(nrow(tab2), n2), ]
   right$rowNum = 1:nrow(right)  
   
@@ -335,6 +348,9 @@ joinHelp <- function(tab1, tab2, n1, n2, tab1var, tab2var, joinType) {
   return(list(left=left, right=right, join=newTab, by=by))
   
 }
+
+
+joinTableHelp <- joinHelp
 
 
 CIAdata <- function (code=NULL) {

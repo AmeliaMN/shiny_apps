@@ -28,9 +28,13 @@ shinyServer(
         of data manipulation. Each tab presents a different data manipulation
         operation, all of which come from the package <code>dplyr</code>. For
         now, select two data sources that you will use throughout the next
-        tabs (you can always come back and change your data). Only the first
-        dataset will be used for all operations, with the exception of join,
-        which will use both datasets. <br><br>    
+        tabs (you can always come back and change your data). The left data set
+        is used for all operations.  The right data set is only used for joins.
+        <br><br>
+        Each time a data set is selected, a random sample of the indicated size
+        is obtained and displayed.  To rerandomize, simply choose a different 
+        data set.
+        <br><br>
         The first 4 datasets are part of the <code>mosaic</code>
         package. In your console, type
         <code>(data(package='mosaic')</code> for general information
@@ -40,6 +44,16 @@ shinyServer(
         <a href = https://www.cia.gov/library/publications/the-world-factbook/rankorder/rankorderguide.html> 
         CIA World Factbook</a> and include information for several countries."}
       })
+   
+    seed1 <- reactive({
+      input$tab1
+      sample(1E6, 1) 
+    }, )
+    
+    seed2 <- reactive({
+      input$tab2
+      sample(1E6, 1) 
+    }, )
     
     tab1 <- reactive({
       datasets[[ input$tab1 ]]
@@ -58,12 +72,12 @@ shinyServer(
     })
     
     output$tab1DS <- renderText({
-      helper = tableHelp(tab1(), tab1n())
+      helper = tableHelp(tab1(), tab1n(), seed1())
       HTML(beigeTable(df=helper))
     })
     
     output$tab2DS <- renderText({
-      helper = tableHelp(tab2(), tab2n())
+      helper = tableHelp(tab2(), tab2n(), seed2())
       HTML(beigeTable(df=helper))
     })    
     
@@ -86,12 +100,12 @@ shinyServer(
     })
     
     output$tabFS <- renderText({ 
-      helper = tableHelp(tab1(), tab1n())
+      helper = tableHelp(tab1(), tab1n(), seed1())
       HTML(beigeTable(df=helper))
     })
     
     output$tabFilter <- renderText({
-      helper = tableHelp(tab1(), tab1n())
+      helper = tableHelp(tab1(), tab1n(), seed1())
       validate(
         need(
           class(
@@ -103,7 +117,7 @@ shinyServer(
     })
     
     output$tabSelect <- renderText({
-      helper = tableHelp(tab1(), tab1n())
+      helper = tableHelp(tab1(), tab1n(), seed1())
       validate(
         need(
           class(
@@ -135,12 +149,12 @@ shinyServer(
     })
     
     output$tabM <- renderText({ 
-      helper = tableHelp(tab1(), tab1n())
+      helper = tableHelp(tab1(), tab1n(), seed1())
       HTML(beigeTable(df=helper))
     })
     
     output$tabMutate <- renderText({
-      helper = tableHelp(tab1(), tab1n())
+      helper = tableHelp(tab1(), tab1n(), seed1())
       validate(
         need(
           class(
@@ -179,12 +193,12 @@ shinyServer(
     })
     
     output$tabGS <- renderText({
-      helper = tableHelp(tab1(), tab1n())
+      helper = tableHelp(tab1(), tab1n(), seed1())
       HTML(normalTable(df=helper, group=input$group))
     })
     
     output$tabGroup <- renderText({
-      helper = tableHelp(tab1(), tab1n())
+      helper = tableHelp(tab1(), tab1n(), seed1())
       validate(
         need(
           class(
@@ -196,7 +210,7 @@ shinyServer(
     })
     
     output$tabSummar <- renderText({       
-      helper = tableHelp(tab1(), tab1n())
+      helper = tableHelp(tab1(), tab1n(), seed1())
       validate(
         need(
           class(
@@ -223,12 +237,18 @@ shinyServer(
             speficied by you. In this section, I diverge a little from
             <code>dplyr</code> as I present the
             <a href="http://www.techonthenet.com/sql/joins.php">most common
-            SQL joins</a> (inner join, left, right and full outer joins),
-            rather than those given by <code>dplyr</code> `s <em>join</em>
-            function. The only other option provided here is the cross join
-            (also called cartesian product) which joins each row on the
-            first table to all the other rows in the second table (rather
-            than based on a common variable). For this section, I reccomend
+            SQL joins</a> (inner join, left, right and full outer joins).
+            These corresponsd to <code>dplyr</code>\'s 
+            <code>inner_join()</code>,
+            <code>left_join()</code>,
+            <code>right_join()</code>, and 
+            <code>outer_join()</code>.
+            An additional option provided here is the cross join
+            (also called cartesian product) which joins each row in the
+            left table to all the other rows in the right table (rather
+            than based on a common variable). 
+            <br><br>
+            For this section, I reccomend
             using two of CIA World Factbook datasets and joining on the
             <code>country</code> variable.'}
       })
@@ -237,18 +257,19 @@ shinyServer(
       updateSelectInput(session, "tab1varJ", 
                         choices = names(tab1()),
                         selected = names(tab1())[1])
-      paste("1st Table:", input$tab1)
+      paste("Left Table:", input$tab1)
     })
     
     output$tab2nameJ <- renderText({ 
       updateSelectInput(session, "tab2varJ", 
                         choices = names(tab2()),
                         selected = names(tab2())[1])
-      paste("2nd Table:", input$tab2)
+      paste("Right Table:", input$tab2)
     })
     
     output$tab1J <- renderText({ 
-      helper = joinTableHelp(tab1(), tab2(), tab1n(), tab2n())
+      helper = joinTableHelp(tab1(), tab2(), tab1n(), tab2n(),
+                        input$tab1varJ, input$tab2varJ, input$join, seed1(), seed2())
       left = helper$left
       right = helper$right
       HTML(fancierTable(left, right, left, 
@@ -256,7 +277,8 @@ shinyServer(
     })
     
     output$tab2J <- renderText({  
-      helper = joinTableHelp(tab1(), tab2(), tab1n(), tab2n())      
+      helper = joinTableHelp(tab1(), tab2(), tab1n(), tab2n(),      
+                        input$tab1varJ, input$tab2varJ, input$join, seed1(), seed2())
       left = helper$left
       right = helper$right
       HTML(fancierTable(left, right, right, 
@@ -265,7 +287,7 @@ shinyServer(
     
     output$joinTab <- renderText({       
       helper = joinHelp(tab1(), tab2(), tab1n(), tab2n(), 
-                        input$tab1varJ, input$tab2varJ, input$join)
+                        input$tab1varJ, input$tab2varJ, input$join, seed1(), seed2())
       
       left = helper$left
       right = helper$right
